@@ -7,8 +7,8 @@ non-admins **before** the request reaches the downstream server.
 ## How to run it
 
 ```bash
-make run-mock-downstream                       # terminal 1 — the downstream MCP server, :8200
-make run-task2                                 # terminal 2 — the gateway, :8300
+uv run uvicorn mock_provider.mcp_downstream:app --port 8200   # terminal 1 — downstream MCP server
+uv run uvicorn task2_mcp_gateway.app:app --port 8300          # terminal 2 — the gateway
 ```
 
 ```bash

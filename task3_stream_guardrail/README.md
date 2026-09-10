@@ -7,15 +7,18 @@ response.
 ## How to run it
 
 ```bash
-make run-mock-llm        # terminal 1 — the provider, :8100
-make run-task3           # terminal 2 — the guardrail, :8400
+uv run uvicorn mock_provider.llm:app --port 8100           # terminal 1 — the provider
+uv run uvicorn task3_stream_guardrail.app:app --port 8400  # terminal 2 — the guardrail
 ```
 
 ```bash
-# PII deliberately split across provider chunk boundaries
-curl -N localhost:8400/v1/chat/completions -d '{"mode":"split_pii"}'
-# data: {"choices":[{"index":0,"delta":{"content":"Here are the details you asked for. Email: "},...
-# data: {"choices":[{"index":0,"delta":{"content":"[REDACTED]"},...
+# The provider splits an email, an SSN and a card mid-pattern across chunks.
+# Reassembling the deltas that come back out:
+curl -sN localhost:8400/v1/chat/completions -d '{"mode":"split_pii"}' \
+  | sed -n 's/^data: //p' | grep -v '^\[DONE\]' \
+  | python3 -c 'import sys,json; print("".join(c.get("delta",{}).get("content","") for l in sys.stdin for c in json.loads(l).get("choices",[])))'
+
+# Here are the details you asked for. Email: [REDACTED]. SSN: [REDACTED]. Card: [REDACTED]. Let me know if you need anything else.
 ```
 
 Configuration: `UPSTREAM_LLM_URL`, `GUARDRAIL_HOLD`, `GUARDRAIL_REQUIRE_LUHN`,
@@ -25,7 +28,7 @@ Configuration: `UPSTREAM_LLM_URL`, `GUARDRAIL_HOLD`, `GUARDRAIL_REQUIRE_LUHN`,
 
 ```bash
 uv run pytest tests/test_task3_guardrail.py -v
-uv run python -m task3_stream_guardrail.benchmark     # the TTFT numbers below
+uv run python -m task3_stream_guardrail.benchmark          # the TTFT numbers below
 ```
 
 ---

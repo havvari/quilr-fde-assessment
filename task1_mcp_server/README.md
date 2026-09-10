@@ -5,7 +5,7 @@ An MCP server exposing one tool, `trigger_refund`, over stdio transport.
 ## How to run it
 
 ```bash
-make run-task1          # or: uv run python -m task1_mcp_server
+uv run python -m task1_mcp_server
 ```
 
 It speaks JSON-RPC on stdin/stdout, so running it in a terminal looks like it has hung.

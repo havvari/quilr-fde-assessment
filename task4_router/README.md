@@ -13,8 +13,8 @@ admit (reserve) ──► primary ──[429 | timeout 3s]──► secondary �
 ## How to run it
 
 ```bash
-make run-mock-llm      # terminal 1 — the provider, :8100
-make run-task4         # terminal 2 — the router, :8500
+uv run uvicorn mock_provider.llm:app --port 8100     # terminal 1 — the provider
+uv run uvicorn task4_router.app:app --port 8500      # terminal 2 — the router
 ```
 
 ```bash
