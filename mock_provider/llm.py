@@ -46,6 +46,11 @@ class CompletionRequest(BaseModel):
     chunk_delay: float = 0.0
     prompt_tokens: int = 100
     completion_tokens: int = 50
+    # When set, the failure mode applies only to this model and every other model
+    # gets a healthy response. Task 4 points both providers at this one mock, so
+    # without it a "primary is rate limited" scenario rate-limits the secondary too
+    # and failover can never be seen to succeed.
+    failing_model: str | None = None
 
 
 # A scripted answer for STREAM mode: nothing sensitive, just several deltas.
@@ -77,6 +82,9 @@ _SPLIT_SCRIPT: tuple[str, ...] = (
     PII_TEXT[76:104],  # ends inside "4111-1111-1111|-1111"
     PII_TEXT[104:],
 )
+
+# Failure modes whose healthy counterpart is a non-streaming response.
+_NON_STREAM_MODES = frozenset({Mode.RATE_LIMITED, Mode.HANG, Mode.SERVER_ERROR, Mode.NON_STREAM})
 
 app = FastAPI(title="mock-llm-provider")
 
@@ -128,7 +136,11 @@ async def completions(
     req = CompletionRequest.model_validate(raw)
     logger.info("mock provider serving mode=%s model=%s", req.mode, req.model)
 
-    match req.mode:
+    effective = req.mode
+    if req.failing_model is not None and req.model != req.failing_model:
+        effective = Mode.NON_STREAM if req.mode in _NON_STREAM_MODES else Mode.STREAM
+
+    match effective:
         case Mode.RATE_LIMITED:
             # Body deliberately carries text that must never reach a client of the
             # Task 4 gateway, so the sanitization test has something to assert on.
