@@ -2,7 +2,7 @@
 name = "quilr-fde-assessment"
 version = "0.1.0"
 description = "MCP server, MCP security gateway, streaming PII guardrail, and a resilient LLM router."
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "mcp==2.2.0",
     "pydantic>=2.12",
@@ -40,7 +40,7 @@ filterwarnings = [
 
 [tool.ruff]
 line-length = 110
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "T20", "ASYNC", "RUF"]
@@ -52,7 +52,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "T20", "ASYNC", "RUF"]
 "tests/fixtures/*" = ["T20"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 warn_unreachable = true
 
