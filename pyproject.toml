@@ -1,0 +1,61 @@
+[project]
+name = "quilr-fde-assessment"
+version = "0.1.0"
+description = "MCP server, MCP security gateway, streaming PII guardrail, and a resilient LLM router."
+requires-python = ">=3.11"
+dependencies = [
+    "mcp==2.2.0",
+    "pydantic>=2.12",
+    "fastapi>=0.118",
+    "uvicorn>=0.34",
+    "httpx2>=2.12",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.25",
+    "anyio>=4.9",
+    "ruff>=0.9",
+    "mypy>=1.14",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["common", "mock_provider", "task1_mcp_server", "task2_mcp_gateway", "task3_stream_guardrail", "task4_router"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# Warnings are errors: a DeprecationWarning from our own code is a bug we want
+# the suite to fail on. The one exception is starlette's TestClient importing a
+# deprecated anyio alias -- third-party, at import time, not ours to fix.
+filterwarnings = [
+    "error",
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "T20", "ASYNC", "RUF"]
+# T20 bans print()/pprint outright: Task 1's whole premise is that nothing in the
+# import graph may write to stdout, and a linter enforces that better than a habit.
+
+[tool.ruff.lint.per-file-ignores]
+# The stdout-leak fixture exists precisely to print at import time.
+"tests/fixtures/*" = ["T20"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_decorators = false
